@@ -1,0 +1,5 @@
+#!/usr/bin/env python
+
+str = raw_input()
+print str[::-1]
+
