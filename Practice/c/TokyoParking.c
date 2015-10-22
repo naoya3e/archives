@@ -9,9 +9,6 @@
 // 1:縦向き  2:横向き
 const int is_vert[MAX+1] = {-1, 0, 1, 0, 1};
 
-// 車のサイズを確保
-int car_length[MAX+1] = {0};
-
 void init_board(int board[][WIDTH+2]) {
   int x, y;
 
