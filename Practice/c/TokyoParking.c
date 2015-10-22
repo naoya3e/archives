@@ -6,10 +6,12 @@
 #define WIDTH 6
 #define HEIGHT 6
 
-// 1:縦向き 0:横向き
+// 1:縦向き  2:横向き
 const int is_vert[MAX+1] = {-1, 0, 1, 0, 1};
 
-// Initialize
+// 車のサイズを確保
+int car_length[MAX+1] = {0};
+
 void init_board(int board[][WIDTH+2]) {
   int x, y;
 
@@ -74,56 +76,54 @@ int is_vertical(int car) {
   return is_vert[car];
 }
 
-void change_board(int car, int op, int board[][WIDTH+2]) {
-  int x, y, dic, flag = 0;
-  int clearX, clearY;
+int set_car_size(int board[][WIDTH+2]) {
+  int x, y;
 
-  dic = (op == 1)? -1: 1;
-
-  for (y=0; y<HEIGHT+2; y++) {
-    for (x=0; x<WIDTH+2; x++) {
-      if (is_vertical(car)) {
-        if (board[y][x] == car) {
-          if (board[y+dic][x] == -1) {
-            fprintf(stderr, "移動可能領域外へ移動しようとしています。\n");
-            return;
-          }
-          printf("flag:%d\n", flag);
-          if (flag == 0) {
-            printf("x:%d  y:%d\n", x, y);
-            clearX = x;
-            clearY = y;
-            flag++;
-          }
-          board[y+dic][x] = car;
-          print_board(board);
-        }
-      } else {
-        if (board[y][x] == car) {
-          if (board[y][x+dic] == -1) {
-            fprintf(stderr, "移動可能領域外へ移動しようとしています。\n");
-            return;
-          }
-          printf("flag:%d\n", flag);
-          if (flag == 0) {
-            printf("x:%d  y:%d\n", x, y);
-            clearX = x;
-            clearY = y;
-            flag++;
-          }
-          board[y][x+dic] = car;
-          print_board(board);
-        }
-      }
-      printf("Y:%d  X:%d\n", clearY, clearX);
-      board[clearY][clearX] = 0;
+  for (y=1; y<HEIGHT+1; y++) {
+    for (x=1; x<WIDTH+1; x++) {
+      car_length[board[y][x]] += 1;
     }
   }
 }
 
+void change_board(int car, int op, int board[][WIDTH+2]) {
+  int x, y;
+  int setX = 0, setY = 0;  // 対象へ変更する座標
+  int moveX = 0, moveY = 0;  // X, Y方向の移動量
+  int clearX = 0, clearY = 0;  // 空き領域へ変更する座標
+
+  if (is_vertical(car) == 0) {
+    moveX = (op == 2)? 1: -1;
+  } else if (is_vertical(car) == 1) {
+    moveY = (op == 2)? 1: -1;
+  }
+
+  for (y=0; y<HEIGHT+2; y++) {
+    for (x=0; x<WIDTH+2; x++) {
+      if (board[y][x] == car) {
+        if (board[y+moveY][x+moveX] == -1){
+          fprintf(stderr, "[ERROR]  移動可能領域外へと移動しようとしています。\n");
+          return;
+        }
+        if ((board[y+moveY][x+moveX] == 0 || board[y+moveY][x+moveX] == car) && board[y-moveY][x-moveX] != car) {
+          clearX = x;
+          clearY = y;
+        }
+        if ((board[y-moveY][x-moveX] == 0 || board[y-moveY][x-moveX] == car) && board[y+moveY][x+moveX] == 0) {
+          setX = x+moveX;
+          setY = y+moveY;
+        }
+      }
+    }
+  }
+
+  board[setY][setX] = car;
+  board[clearY][clearX] = 0;
+}
+
 int main() {
   int car, op;
-  int board[HEIGHT+2][WIDTH+2] = {0};
+  int board[HEIGHT+2][WIDTH+2] = {0};  // ゼロ初期化
 
   init_board(board);
 
@@ -142,10 +142,10 @@ int main() {
     scanf("%d", &op);
     if (op == 0) continue;
     change_board(car, op, board);
-    if (board[3][7] == 2) break;
+    if (board[3][7] == 1) break;
   }
 
-  printf("駐車場を出ることに成功しました。\n");
+  printf("\n駐車場を出ることに成功しました!!\n");
 
   return 0;
 }
