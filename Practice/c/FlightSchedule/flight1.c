@@ -46,7 +46,7 @@ void print_airline(FLIGHT airline[], int n) {
   printf("フライトスケジュールを表示します.\n");
 
   for (i=0; i<n; i++) {
-    printf("%d.  %s%d便 %02d:%02d →  %02d:%02d\n", i+1, airline[i].carrier, airline[i].num, airline[i].d_hour, airline[i].d_min, airline[i].a_hour, airline[i].a_min);
+    printf("%2d.  %s%4d便 %02d:%02d →  %02d:%02d\n", i+1, airline[i].carrier, airline[i].num, airline[i].d_hour, airline[i].d_min, airline[i].a_hour, airline[i].a_min);
   }
 }
 
