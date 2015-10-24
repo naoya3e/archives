@@ -40,24 +40,21 @@ int read_airline(char filename[], FLIGHT airline[]) {
   return i;
 }
 
-void print_airline(FLIGHT airline[], int n) {
-  int i;
-
-  printf("フライトスケジュールを表示します.\n");
-
-  for (i=0; i<n; i++) {
-    printf("%d.  %s%d便 %02d:%02d →  %02d:%02d\n", i+1, airline[i].carrier, airline[i].num, airline[i].d_hour, airline[i].d_min, airline[i].a_hour, airline[i].a_min);
-  }
-}
-
 FLIGHT *search_flight(FLIGHT airline[], int hour, int min) {
-  int i = 0;
+  int i;
+  int ref_time;
+  int input_time;
+  int dif_time = 1500;
   FLIGHT *target = NULL;
 
-  for (i=0; i<sizeof(airline)-2; i++) {  // 時刻は24時間表示のため、0<x<24について算術比較を行える
-    if (airline[i].d_hour > hour && airline[i].d_min > min) {
+  input_time = 60*hour + min;
+
+  for (i=0; i<airline[i].num!=0; i++) {  // あんまり良くない気がするけど、フライト数とれないとこれしかない
+    ref_time = 60*airline[i].d_hour + airline[i].d_min;
+
+    if (ref_time >= input_time && dif_time > ref_time - input_time) {
+      dif_time = ref_time - input_time;
       target = &airline[i];
-      break;
     }
   }
 
@@ -75,11 +72,10 @@ void print_flight(FLIGHT *flight) {
 int main(int argc, char *argv[]) {
   int flights;
   int hour, min;
-  FLIGHT airline[10];
+  FLIGHT airline[10] = {0};
   FLIGHT *line;
 
   flights = read_airline(argv[1], airline);
-  // print_airline(airline, flights);
 
   printf("時刻を(hh:mm)の形式で入力してください : ");
   scanf("%d:%d", &hour, &min);
