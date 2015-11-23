@@ -7,6 +7,10 @@
 #
 #  [status] true:continue   false:break
 #
+#   +---+---+
+#   | 0 | ● |
+#   +---+---+
+#
 
 class Reversi
   attr_reader   :status
