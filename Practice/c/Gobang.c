@@ -40,8 +40,7 @@ int main(void) {
   init_board(&p);
   print_board(&p);
 
-  // メインルーチン
-  do {
+  while(1) {
     printf("\n石を置く座標を指定してください (x,y)：");
     scanf("%d,%d", &x, &y);
 
@@ -52,7 +51,8 @@ int main(void) {
     print_board(&p);
 
     status = check_end(&p);
-  } while (status == 0);
+    if (status != 0) break;
+  }
 
   if (status == FIRST) {
     printf("先手の勝利です\n");
@@ -66,7 +66,7 @@ int main(void) {
 }
 
 void init_board(PHASE *p)  {
-  p->turn = BLACK;  // 先手スタート
+  p->turn = FIRST;  // 先手スタート
   memset(p->board, EMPTY, sizeof(p->board));  // フィールド初期化
 }
 
