@@ -50,8 +50,10 @@ void cpu(PHASE *p);  // AI着手処理
 int check_move(PHASE *p, int x, int y);  // 入力座標の正誤確認
 int check_end(PHASE *p);  // 終了判定
 int check_five(PHASE *p, int x, int y);  // 石の連続確認
+int check_win(PHASE *p, int moves[][SIZE], int turn);  // 着手後の局面判定
 
 void change_phase(PHASE *p, int x, int y);  // 着手を行い局面を更新
+void find_move(PHASE *p, int moves[][SIZE]);  // 着手可能座標の探索
 
 int select_player_turn();  // 人間の手番選択
 

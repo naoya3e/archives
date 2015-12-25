@@ -102,12 +102,10 @@ void human(PHASE *p) {
 
 void cpu(PHASE *p) {
   int x, y;
+  int moves[SIZE][SIZE];  // 着手可能座標を格納
 
-  while (1) {
-    x = rand()%SIZE;
-    y = rand()%SIZE;
-    if (check_move(p, x, y)) break;
-  }
+  find_move(p, moves);  // 着手可能座標を探索する
+
 
   change_phase(p, x, y);
 }
@@ -175,8 +173,42 @@ int check_five(PHASE *p, int x, int y) {
   return FAIL;
 }
 
+int check_win(PHASE *p, int moves[][SIZE], int turn) {
+  int x, y;
+
+  find_move(p, moves);  // 現在の局面での着手可能座標を探索する
+
+  // 必勝局面を探索し、着手を決定する
+  for (y=0; y<SIZE; y++) {
+    for (x=0; x<SIZE; x++) {
+      // 現在の局面 p について着手可能なパターンを再帰的に全探索
+      // 探索した結果必勝となる局面が存在発見された時、探索を打ち切る
+      // つまり必勝局面が複数あった時、最初に見つかった着手を選択する
+      if (moves[y][x] == SUCC) {
+        moves[y][x] = turn;  // 探索局面について着手を実施
+        turn = (turn == FIRST)? SECOND: FIRST;  // ターンを交代する
+        check_win(p, moves, turn);
+      }
+    }
+  }
+
+  // 着手可能座標がない、つまりすべての座標に石が置かれた時
+  return ;
+}
+
 void change_phase(PHASE *p, int x, int y) {
   p->board[y-1][x-1] = p->turn;  // 指定座標を現在のプレイヤーの石にする
   p->turn = (p->turn == FIRST)? SECOND: FIRST;  // ターン交代
+}
+
+void find_move(PHASE *p, int moves[][SIZE]) {
+  int x, y;
+
+  for (y=0; y<SIZE; y++) {
+    for (x=0; x<SIZE; x++) {
+      // 盤面に石が置かれてなければ着手可能
+      moves[y][x] = (p->board[y][x] == EMPTY)? SUCC: FAIL;
+    }
+  }
 }
 
