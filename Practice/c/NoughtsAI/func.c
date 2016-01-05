@@ -102,12 +102,32 @@ void human(PHASE *p) {
 
 void cpu(PHASE *p) {
   int x, y;
+  int flag = 0;  // 二重ループ脱出フラグ
+  int status = 0;  // 必勝局面判定フラグ
   int moves[SIZE][SIZE];  // 着手可能座標を格納
 
-  find_move(p, moves);  // 着手可能座標を探索する
+  for (y=0; y<SIZE; y++) {
+    for (x=0; x<SIZE; x++) {
+      find_move(p, moves);  // 着手可能座標を探索する
+      status = check_win(p, moves, p->turn);  // 必勝局面探索
+      if (status == 1) {
+        flag = 1;
+        break;
+      }
+    }
+    if (flag == 1) break;
+  }
 
-
-  change_phase(p, x, y);
+  // ループ脱出時の座標が必勝局面へ到達する着手である
+  // 必勝局面判定フラグが立っていなければ必勝でない可能性がある
+  if (status == 1) {
+    change_phase(p, x, y);  // 必勝局面へ到達する着手を実施
+  } else {
+    // 必勝局面へ到達できないためランダムな着手を行いターンをすすめる
+    x = rand()%SIZE;
+    y = rand()%SIZE;
+    change_phase(p, x, y);
+  }
 }
 
 int check_move(PHASE *p, int x, int y) {
@@ -176,24 +196,16 @@ int check_five(PHASE *p, int x, int y) {
 int check_win(PHASE *p, int moves[][SIZE], int turn) {
   int x, y;
 
-  find_move(p, moves);  // 現在の局面での着手可能座標を探索する
-
-  // 必勝局面を探索し、着手を決定する
   for (y=0; y<SIZE; y++) {
     for (x=0; x<SIZE; x++) {
-      // 現在の局面 p について着手可能なパターンを再帰的に全探索
-      // 探索した結果必勝となる局面が存在発見された時、探索を打ち切る
-      // つまり必勝局面が複数あった時、最初に見つかった着手を選択する
-      if (moves[y][x] == SUCC) {
+      if (moves[y][x] == 1) {  // 着手可能座標であれば
         moves[y][x] = turn;  // 探索局面について着手を実施
         turn = (turn == FIRST)? SECOND: FIRST;  // ターンを交代する
-        check_win(p, moves, turn);
       }
     }
   }
 
-  // 着手可能座標がない、つまりすべての座標に石が置かれた時
-  return ;
+
 }
 
 void change_phase(PHASE *p, int x, int y) {
