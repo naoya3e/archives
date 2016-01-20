@@ -150,45 +150,27 @@ void print_board(PHASE *p) {
 }
 
 void print_card(PHASE *p, int player) {
-  int i;
+  int i, n = 0;
   int scalar[5] = {0};
   int dx[5] = {0};
-  char *arrow[8] = {"↖ ", "↑ ", "↗ ", "← ", "", "→ ", "↙ ", "↓ ", "↘ "};
+  char *arrow[9] = {"↖ ", "↑ ", "↗ ", "← ", "", "→ ", "↙ ", "↓ ", "↘ "};
 
+  // 手札の状態を探索する
   for (i=0; i<27; i++) {
     if (p->card[i] == player) {
-      switch (i%9) {
-        case 0:
-          printf("↖ ");
-          break;
-        case 1:
-          printf("↑ ");
-          break;
-        case 2:
-          printf("↗ ");
-          break;
-        case 3:
-          printf("← ");
-          break;
-        case 4:
-          break;
-        case 5:
-          printf("→ ");
-          break;
-        case 6:
-          printf("↙ ");
-          break;
-        case 7:
-          printf("↓ ");
-          break;
-        case 8:
-          printf("↘ ");
-          break;
-        default:
-          fprintf(stderr, "ERROR: 移動カードに不正な値が入力されています\n");
-          exit(EXIT_FAILURE);
-      }
+      scalar[n] = i/9 + 1;  // 大きさ
+      dx[n] = i%9;  // 向き
+      n++;
     }
+  }
+
+  // 手札を表示する
+  for (i=0; i<HANDS; i++) {
+    printf("[%d] ", scalar[i]);
+  }
+  printf("\n");
+  for (i=0; i<HANDS; i++) {
+    printf("[%d] ", (*arrow)[dx[i]]);
   }
   printf("\n\n");
 }
