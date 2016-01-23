@@ -23,7 +23,9 @@ typedef struct {
   int board[SIZE][SIZE];  // 盤面
   int x, y;  // 駒の座標
   int card[CARDS];  // 移動カード
-  int w_knight, r_knight;  // プレイヤーの騎士カード所持数
+  int w_knight, r_knight;  // 騎士カード所持数
+  int player_hand[5];  // プレイヤーの手札
+  int cpu_hand[5];  // CPUの手札
 } PHASE;
 
 void initialize(PHASE *p);
@@ -56,6 +58,7 @@ void initialize(PHASE *p) {
 
   printf("############################\n");
   printf("#        Rosenkonig        #\n");
+  printf("#          対 CPU          #\n");
   printf("############################\n");
 
   while (1) {
@@ -119,11 +122,10 @@ void print_board(PHASE *p) {
 
   // 盤面の表示
   for (y=0; y<SIZE; y++) {
-    printf("   +---+---+---+---+---+---+---+---+---+\n");
-    printf(" %d ", y+1);
+    printf(" +---+---+---+---+---+---+---+---+---+\n ");
     for (x=0; x<SIZE; x++) {
       if (x == p->x && y == p->y) {
-        printf("| ＊");
+        printf("| * ");
       } else {
         switch (p->board[y][x]) {
           case EMPTY:
@@ -143,7 +145,7 @@ void print_board(PHASE *p) {
     }
     printf("|\n");
   }
-  printf("   +---+---+---+---+---+---+---+---+---+\n");
+  printf(" +---+---+---+---+---+---+---+---+---+\n");
 
   // 自分の手札表示
   print_card(p, RED);
