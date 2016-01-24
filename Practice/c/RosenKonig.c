@@ -24,8 +24,6 @@ typedef struct {
   int x, y;  // 駒の座標
   int card[CARDS];  // 移動カード
   int w_knight, r_knight;  // 騎士カード所持数
-  int player_hand[HANDS];  // プレイヤーの手札
-  int cpu_hand[HANDS];  // CPUの手札
 } PHASE;
 
 
@@ -37,8 +35,8 @@ void print_board(PHASE *p);  // 盤面およびプレイヤーの手札の表示
 void print_card(PHASE *p, int player);  // プレイヤーの手札の表示
 
 // 盤面操作関数
-void get_vector(PHASE *p, int index, int *scalar, int *dx);  // 入力されたインデックスから移動の大きさと向きを取得
-void change_phase(PHASE *p, int nx, int ny);  // 局面を着手にしたがって更新する
+int get_vector(PHASE *p, int index, int *scalar, int *dx);  // 入力されたインデックスから移動の大きさと向きを取得
+void change_phase(PHASE *p, int move);  // 局面を着手にしたがって更新する
 
 // プレイヤー入力処理関数
 void get_player_command(PHASE *p);  // プレイヤーのコマンド受付
@@ -205,7 +203,7 @@ void print_card(PHASE *p, int player) {
   }
 }
 
-void get_vector(PHASE *p, int index, int *coef, int *dirc) {
+int get_vector(PHASE *p, int index, int *coef, int *dirc) {
   int i;
   int n = 0;
 
@@ -216,15 +214,23 @@ void get_vector(PHASE *p, int index, int *coef, int *dirc) {
 
   *coef = i/8+1;
   *dirc = i%8;
+
+  return i;
 }
 
-void change_phase(PHASE *p, int nx, int ny) {
-  p->x = nx;
-  p->y = ny;
+void change_phase(PHASE *p, int move) {
+  int dx[] = {-1, 0, 1, -1, 1, -1, 0, 1};
+  int dy[] = {-1, -1, -1, 0, 0, 1, 1, 1};
+
+  // p->x = (move/8+1)*dx[move%8];
+  // p->y = (move/8+1)*dy[move%8];
+  // p->card[move] = p->turn;
+  // p->turn = (p->turn == RED)? WHITE: RED;
 }
 
 void get_player_command(PHASE *p) {
   int n;
+  int move;  // 一次元で表される移動データ
   int coef, dirc;  // 移動ベクトルの係数(大きさ)と向き
   int nx, ny;  // 移動先の座標
   int dx[] = {-1, 0, 1, -1, 1, -1, 0, 1};
@@ -249,7 +255,7 @@ void get_player_command(PHASE *p) {
 
     // 移動コマンドであれば、移動可能かどうかシミュレート
     if (n >= 1 && n <= 5) {
-      get_vector(p, n, &coef, &dirc);
+      move = get_vector(p, n, &coef, &dirc);
 
       // 移動先の座標算出
       nx = p->x + coef*dx[dirc];
@@ -271,8 +277,9 @@ void get_player_command(PHASE *p) {
     break;
   }
 
+  printf("move:%d\n", move);
   // 入力コマンドに基づき局面の更新を行う
-  change_phase(p, nx, ny);
+  change_phase(p, move);
 }
 
 int get_player_hands_size(PHASE *p) {
