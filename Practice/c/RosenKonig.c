@@ -125,7 +125,7 @@ void print_board(PHASE *p) {
   int i;
   int x, y;
 
-  // 相手プレイヤーの手札表示
+  // 相手の手札表示
   print_card(p, WHITE);
 
   // 盤面の表示
