@@ -154,21 +154,27 @@ void print_board(PHASE *p) {
 }
 
 void print_card(PHASE *p, int player) {
-  int i;
+  int i, j;
   char *arrow[8] = {"↖ ", "↑ ", "↗ ", "← ", "→ ", "↙ ", "↓ ", "↘ "};
 
   // コマンド番号表示
   if (player == RED) {
     for (i=0; i<HANDS; i++) {
-      printf("  [%d]", i);
+      printf("  [%d]", i+1);
     }
     printf("\n");
   }
 
   // カード表示
-  for (i=0; i<HANDS; i++) {
-    printf("  %d%s", 3, "→ ");
+  for (i=0; i<CARDS; i++) {
+    if (p->card[i] == player) printf("  %d%s", i/8+1, arrow[i%8]);
   }
-  printf("\n");
+
+  // 残りの騎士カードの枚数表示
+  if (player == RED) {
+    printf("      ▼ %d\n", p->r_knight);
+  } else {
+    printf("      △ %d\n", p->w_knight);
+  }
 }
 
