@@ -38,6 +38,7 @@ void print_card(PHASE *p, int player);  // プレイヤーの手札の表示
 
 // 盤面操作関数
 void get_vector(PHASE *p, int index, int *scalar, int *dx);  // 入力されたインデックスから移動の大きさと向きを取得
+void change_phase(PHASE *p, int nx, int ny);  // 局面を着手にしたがって更新する
 
 // プレイヤー入力処理関数
 void get_player_command(PHASE *p);  // プレイヤーのコマンド受付
@@ -55,6 +56,7 @@ int main() {
   // メインルーチン
   while (1) {
     get_player_command(&p);
+    print_board(&p);
     break;  // DEBUG
   }
 
@@ -73,7 +75,7 @@ void initialize(PHASE *p) {
   printf(" あなたは先手● (ランカスター家)です。\n");
 
   // 盤面の案内
-  printf(" [x]:コマンド 残:残り駒数 *:駒 ● :現在の得点 ▼ :騎士の枚数 \n\n");
+  printf(" [x]:コマンド 残:残り駒数 *:駒 ● :現在の得点 ▼ :騎士の枚数 \n");
 
   // 乱数初期化
   srand((unsigned int)time(NULL));
@@ -124,6 +126,9 @@ void initialize(PHASE *p) {
 void print_board(PHASE *p) {
   int i;
   int x, y;
+
+  // 表示調整
+  printf("\n");
 
   // 相手の手札表示
   print_card(p, WHITE);
@@ -213,9 +218,14 @@ void get_vector(PHASE *p, int index, int *coef, int *dirc) {
   *dirc = i%8;
 }
 
+void change_phase(PHASE *p, int nx, int ny) {
+  p->x = nx;
+  p->y = ny;
+}
+
 void get_player_command(PHASE *p) {
   int n;
-  int coef, dirc;  // 移動ベクトルの係数と向き
+  int coef, dirc;  // 移動ベクトルの係数(大きさ)と向き
   int nx, ny;  // 移動先の座標
   int dx[] = {-1, 0, 1, -1, 1, -1, 0, 1};
   int dy[] = {-1, -1, -1, 0, 0, 1, 1, 1};
@@ -260,6 +270,9 @@ void get_player_command(PHASE *p) {
     // コマンドが実行可能である
     break;
   }
+
+  // 入力コマンドに基づき局面の更新を行う
+  change_phase(p, nx, ny);
 }
 
 int get_player_hands_size(PHASE *p) {
