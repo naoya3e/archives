@@ -28,19 +28,23 @@ typedef struct {
   int cpu_hand[HANDS];  // CPUの手札
 } PHASE;
 
+
+// 基本動作関数
 void initialize(PHASE *p);
 
+// 出力用関数
 void print_board(PHASE *p);  // 盤面およびプレイヤーの手札の表示
 void print_card(PHASE *p, int player);  // プレイヤーの手札の表示
-void index_hand_from_deck(PHASE *p);  // 山札から手札をインデックスする
-void change_board(PHASE *p, int move);  // 盤面と駒の更新
-void deal_card(PHASE *p);  // 山札からカードを配布
 
+// 盤面操作関数
+void get_vector(PHASE *p, int index, int *scalar, int *dx);  // 入力されたインデックスから移動の大きさと向きを取得
+
+// プレイヤー入力処理関数
 void get_player_command(PHASE *p);  // プレイヤーのコマンド受付
 
-int input_move(PHASE *p);  // プレイヤーの着手入力
-int check_end(PHASE *p);  // 終了判定
-int judge(PHASE *p);  // 勝敗判定
+// プレイヤー情報取得関数
+int get_player_hands_size(PHASE *p);  // プレイヤーの手札の枚数をカウントする
+
 
 int main() {
   int exectable;  // 着手が実行可能かどうか
@@ -48,9 +52,11 @@ int main() {
 
   initialize(&p);
 
-  // // メインルーチン
-  // while (1) {
-  // }
+  // メインルーチン
+  while (1) {
+    get_player_command(&p);
+    break;  // DEBUG
+  }
 
   return 0;
 }
@@ -164,6 +170,9 @@ void print_board(PHASE *p) {
 
   // 自分の手札表示
   print_card(p, RED);
+
+  // 表示調整
+  printf("\n");
 }
 
 void print_card(PHASE *p, int player) {
@@ -189,5 +198,41 @@ void print_card(PHASE *p, int player) {
   } else {
     printf("      △ %d\n", p->w_knight);
   }
+}
+
+void get_player_command(PHASE *p) {
+  int n;
+
+  printf("1~5:駒を移動する 0:カードを引く >> ");
+
+  while (1) {
+    scanf("%d", &n);
+
+    // コマンドが想定範囲内の値をとっているかどうか
+    if (n < 0 || n > 5) {
+      printf("1~5 もしくは 0 だけが入力可能なコマンドです >> ");
+      continue;
+    }
+
+    // 手札が5枚のときはカードを新たに引くことはできない
+    if (n == 0 && get_player_hands_size(p) == 5) {
+      printf("手札が5枚あるため新たに引くことはできません >> ");
+      continue;
+    }
+
+    // コマンドが実行可能である
+    break;
+  }
+}
+
+int get_player_hands_size(PHASE *p) {
+  int i;
+  int n = 0;
+
+  for (i=0; i<CARDS; i++) {
+    if (p->card[i] == p->turn) n++;
+  }
+
+  return n;
 }
 
