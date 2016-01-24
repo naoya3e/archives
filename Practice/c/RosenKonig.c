@@ -7,15 +7,15 @@
 #define TERR 52  // 領土の合計値到達数
 
 #define HANDS 5  // 手札の枚数
-#define CARDS 27 // 移動カードの枚数
+#define CARDS 24 // 移動カードの枚数
 
 #define EMPTY 0  // 盤面が空白
 
 #define DRAW  3  // 引き分け
 
-#define OPEN  0  // 場
-#define WHITE 1  // 白プレイヤー
-#define RED   2  // 赤プレイヤー
+#define USED  0  // 場
+#define WHITE 1  // CPU
+#define RED   2  // プレイヤー
 #define DECK  3  // 山札
 
 typedef struct {
@@ -24,27 +24,31 @@ typedef struct {
   int x, y;  // 駒の座標
   int card[CARDS];  // 移動カード
   int w_knight, r_knight;  // 騎士カード所持数
-  int player_hand[5];  // プレイヤーの手札
-  int cpu_hand[5];  // CPUの手札
+  int player_hand[HANDS];  // プレイヤーの手札
+  int cpu_hand[HANDS];  // CPUの手札
 } PHASE;
 
 void initialize(PHASE *p);
 
 void print_board(PHASE *p);  // 盤面およびプレイヤーの手札の表示
 void print_card(PHASE *p, int player);  // プレイヤーの手札の表示
+void index_hand_from_deck(PHASE *p);  // 山札から手札をインデックスする
 void change_board(PHASE *p, int move);  // 盤面と駒の更新
 void deal_card(PHASE *p);  // 山札からカードを配布
+
+void get_player_command(PHASE *p);  // プレイヤーのコマンド受付
 
 int input_move(PHASE *p);  // プレイヤーの着手入力
 int check_end(PHASE *p);  // 終了判定
 int judge(PHASE *p);  // 勝敗判定
 
 int main() {
+  int exectable;  // 着手が実行可能かどうか
   PHASE p;  // 局面
 
   initialize(&p);
 
-  // メインルーチン
+  // // メインルーチン
   // while (1) {
   // }
 
@@ -52,32 +56,24 @@ int main() {
 }
 
 void initialize(PHASE *p) {
-  int i;
-  int n;
-  int counter;
+  int i, n;
 
-  printf("############################\n");
-  printf("#        Rosenkonig        #\n");
-  printf("#          対 CPU          #\n");
-  printf("############################\n");
+  printf("##################################\n");
+  printf("            Rosenkonig            \n");
+  printf("              対 CPU              \n");
+  printf("##################################\n\n");
 
-  while (1) {
-    printf("あなたの手番を選択してください (先手:1 後手:2) >> ");
-    scanf("%d", &n);
+  // 手番の案内
+  printf(" あなたは先手で● です。\n");
 
-    if (n != WHITE && n != RED) {
-      printf("入力できる数字は 1 か 2 のみです\n");
-      printf("再度、入力を行って下さい\n\n");
-    } else {
-      break;
-    }
-  }
+  // 盤面の案内
+  printf(" [x]:コマンド 残:残り駒数 *:駒 ● :現在の得点 ▼ :騎士の枚数 \n\n");
 
   // 乱数初期化
   srand((unsigned int)time(NULL));
 
   // ターン初期化
-  p->turn = n;
+  p->turn = RED;
 
   // 盤面初期化
   memset(p->board, EMPTY, sizeof(p->board));
@@ -88,20 +84,26 @@ void initialize(PHASE *p) {
 
   // 移動カード初期化
   for (i=0; i<CARDS; i++) p->card[i] = DECK;  // 移動カードはすべて山札
-  counter = 0;
-  while (counter < HANDS) {
+
+  // 移動カード初期配布
+  // プレイヤーカード配布
+  i = 0;
+  while (i<HANDS) {
+    n = rand()%CARDS;
+    if (p->card[n] == DECK) {
+      p->card[n] = RED;
+      // p->player_hand[i] = n;
+      i++;
+    }
+  }
+  // CPUカード配布
+  i = 0;
+  while (i<HANDS) {
     n = rand()%CARDS;
     if (p->card[n] == DECK) {
       p->card[n] = WHITE;
-      counter++;
-    }
-  }
-  counter = 0;
-  while (counter < HANDS) {
-    n = rand()%CARDS;
-    if (p->card[n] == DECK && n%9 != 4) {
-      p->card[n] = RED;
-      counter++;
+      // p->cpu_hand[i] = n;
+      i++;
     }
   }
 
@@ -152,28 +154,21 @@ void print_board(PHASE *p) {
 }
 
 void print_card(PHASE *p, int player) {
-  int i, n = 0;
-  int scalar[5] = {0};
-  int dx[5] = {0};
-  char *arrow[9] = {"↖ ", "↑ ", "↗ ", "← ", "", "→ ", "↙ ", "↓ ", "↘ "};
+  int i;
+  char *arrow[8] = {"↖ ", "↑ ", "↗ ", "← ", "→ ", "↙ ", "↓ ", "↘ "};
 
-  // 手札の状態を探索する
-  for (i=0; i<27; i++) {
-    if (p->card[i] == player) {
-      scalar[n] = i/9 + 1;  // 大きさ
-      dx[n] = i%9;  // 向き
-      n++;
+  // コマンド番号表示
+  if (player == RED) {
+    for (i=0; i<HANDS; i++) {
+      printf("  [%d]", i);
     }
+    printf("\n");
   }
 
-  // 手札を表示する
+  // カード表示
   for (i=0; i<HANDS; i++) {
-    printf("[%d] ", scalar[i]);
+    printf("  %d%s", 3, "→ ");
   }
   printf("\n");
-  for (i=0; i<HANDS; i++) {
-    printf("[%d] ", (*arrow)[dx[i]]);
-  }
-  printf("\n\n");
 }
 
