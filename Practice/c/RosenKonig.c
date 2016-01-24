@@ -200,8 +200,25 @@ void print_card(PHASE *p, int player) {
   }
 }
 
+void get_vector(PHASE *p, int index, int *coef, int *dirc) {
+  int i;
+  int n = 0;
+
+  for (i=0; i<CARDS; i++) {
+    if (p->card[i] == p->turn) n++;
+    if (n == index) break;
+  }
+
+  *coef = i/8+1;
+  *dirc = i%8;
+}
+
 void get_player_command(PHASE *p) {
   int n;
+  int coef, dirc;  // 移動ベクトルの係数と向き
+  int nx, ny;  // 移動先の座標
+  int dx[] = {-1, 0, 1, -1, 1, -1, 0, 1};
+  int dy[] = {-1, -1, -1, 0, 0, 1, 1, 1};
 
   printf("1~5:駒を移動する 0:カードを引く >> ");
 
@@ -218,6 +235,26 @@ void get_player_command(PHASE *p) {
     if (n == 0 && get_player_hands_size(p) == 5) {
       printf("手札が5枚あるため新たに引くことはできません >> ");
       continue;
+    }
+
+    // 移動コマンドであれば、移動可能かどうかシミュレート
+    if (n >= 1 && n <= 5) {
+      get_vector(p, n, &coef, &dirc);
+
+      // 移動先の座標算出
+      nx = p->x + coef*dx[dirc];
+      ny = p->y + coef*dy[dirc];
+
+      // x方向を探索
+      if (nx < 0 || nx >= SIZE) {
+        printf("盤面外への移動は行えません\n");
+        continue;
+      }
+      // y方向を探索
+      if (ny < 0 || ny >= SIZE) {
+        printf("盤面外への移動は行えません\n");
+        continue;
+      }
     }
 
     // コマンドが実行可能である
