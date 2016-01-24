@@ -65,12 +65,12 @@ void initialize(PHASE *p) {
   int i, n;
 
   printf("##################################\n");
-  printf("            Rosenkonig            \n");
+  printf("            Rosenkönig            \n");
   printf("              対 CPU              \n");
   printf("##################################\n\n");
 
   // 手番の案内
-  printf(" あなたは先手で● です。\n");
+  printf(" あなたは先手● (ランカスター家)です。\n");
 
   // 盤面の案内
   printf(" [x]:コマンド 残:残り駒数 *:駒 ● :現在の得点 ▼ :騎士の枚数 \n\n");
