@@ -222,10 +222,10 @@ void change_phase(PHASE *p, int move) {
   int dx[] = {-1, 0, 1, -1, 1, -1, 0, 1};
   int dy[] = {-1, -1, -1, 0, 0, 1, 1, 1};
 
-  // p->x = (move/8+1)*dx[move%8];
-  // p->y = (move/8+1)*dy[move%8];
-  // p->card[move] = p->turn;
-  // p->turn = (p->turn == RED)? WHITE: RED;
+  p->x += (move/8+1)*dx[move%8];
+  p->y += (move/8+1)*dy[move%8];
+  p->card[move] = p->turn;
+  p->turn = (p->turn == RED)? WHITE: RED;
 }
 
 void get_player_command(PHASE *p) {
@@ -277,7 +277,6 @@ void get_player_command(PHASE *p) {
     break;
   }
 
-  printf("move:%d\n", move);
   // 入力コマンドに基づき局面の更新を行う
   change_phase(p, move);
 }
