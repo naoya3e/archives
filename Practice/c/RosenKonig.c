@@ -19,7 +19,7 @@
 #define DECK  3  // 山札
 
 typedef struct {
-  int turn;  // 手番のプレイヤー
+  int turn;  // 手番
   int board[SIZE][SIZE];  // 盤面
   int x, y;  // 駒の座標
   int card[CARDS];  // 移動カード
@@ -31,15 +31,18 @@ typedef struct {
 void initialize(PHASE *p);
 
 // 出力用関数
-void print_board(PHASE *p);  // 盤面およびプレイヤーの手札の表示
-void print_card(PHASE *p, int player);  // プレイヤーの手札の表示
+void print_board(PHASE *p);  // 盤面および手札の表示
+void print_card(PHASE *p, int player);  // 手札の表示
 
 // 盤面操作関数
 int get_vector(PHASE *p, int index, int *scalar, int *dx);  // 入力されたインデックスから移動の大きさと向きを取得
 void change_phase(PHASE *p, int move);  // 局面を着手にしたがって更新する
 
+// 札操作関数
+void deal_card(PHASE *p);  // 山札からランダムにカードを配布する
+
 // プレイヤー入力処理関数
-void get_player_command(PHASE *p);  // プレイヤーのコマンド受付
+void input_move(PHASE *p);  // プレイヤーのコマンド受付
 
 // プレイヤー情報取得関数
 int get_player_hands_size(PHASE *p);  // プレイヤーの手札の枚数をカウントする
@@ -53,8 +56,14 @@ int main() {
 
   // メインルーチン
   while (1) {
-    get_player_command(&p);
+    // プレイヤーターン
+    input_move(&p);
     print_board(&p);
+
+    // CPUターン
+    input_move(&p);
+    print_board(&p);
+
     break;  // DEBUG
   }
 
@@ -120,7 +129,6 @@ void initialize(PHASE *p) {
 }
 
 void print_board(PHASE *p) {
-  int i;
   int x, y;
 
   // 表示調整
@@ -177,7 +185,7 @@ void print_board(PHASE *p) {
 }
 
 void print_card(PHASE *p, int player) {
-  int i, j;
+  int i;
   char *arrow[8] = {"↖ ", "↑ ", "↗ ", "← ", "→ ", "↙ ", "↓ ", "↘ "};
 
   // コマンド番号表示
@@ -205,14 +213,17 @@ int get_vector(PHASE *p, int index, int *coef, int *dirc) {
   int i;
   int n = 0;
 
+  // index番目のカードを探索する
   for (i=0; i<CARDS; i++) {
     if (p->card[i] == p->turn) n++;
     if (n == index) break;
   }
 
+  // カードの添字から移動カードの大きさと向きを算出する
   *coef = i/8+1;
   *dirc = i%8;
 
+  // 移動カードを戻り値とし、change_phase()で利用する
   return i;
 }
 
@@ -220,13 +231,38 @@ void change_phase(PHASE *p, int move) {
   int dx[] = {-1, 0, 1, -1, 1, -1, 0, 1};
   int dy[] = {-1, -1, -1, 0, 0, 1, 1, 1};
 
+  // 現在の駒の位置から移動
   p->x += (move/8+1)*dx[move%8];
   p->y += (move/8+1)*dy[move%8];
-  p->card[move] = p->turn;
+
+  // 使用したカードを手札から外す
+  p->card[move] = USED;
+
+  // 盤面の領土を反映させる
+  p->board[p->y][p->x] = p->turn;
+
+  // ターンを交代する
   p->turn = (p->turn == RED)? WHITE: RED;
 }
 
-void get_player_command(PHASE *p) {
+void deal_card(PHASE *p) {
+  int i, n;
+
+  // 山札の存在確認
+  for (i=0; i<CARDS; i++) {
+  }
+
+  // 山札からカードを一枚引き、手番の手札とする
+  while (1) {
+    n = rand()%CARDS;
+    if (p->card[n] == DECK) {
+      p->card[n] = p->turn;
+      break;
+    }
+  }
+}
+
+void input_move(PHASE *p) {
   int n;
   int move;  // 一次元で表される移動データ
   int coef, dirc;  // 移動ベクトルの係数(大きさ)と向き
@@ -269,6 +305,12 @@ void get_player_command(PHASE *p) {
         printf("盤面外への移動は行えません\n");
         continue;
       }
+    }
+
+    // 札のドローコマンドであり、手札の枚数が4枚以下であるか
+    if (n == 0 && get_player_hands_size(p) < 5) {
+      // カードを1枚手札に加える
+      deal_card(PHASE *p);
     }
 
     // コマンドが実行可能である
