@@ -37,6 +37,7 @@ void print_card(PHASE *p, int player);  // 手札の表示
 
 // 盤面操作関数
 int get_vector(PHASE *p, int index, int *scalar, int *dx);  // 入力されたインデックスから移動の大きさと向きを取得
+int calc_point(PHASE *p, int turn);  // 盤面から得点を計算する
 void change_phase(PHASE *p, int move);  // 局面を着手にしたがって更新する
 
 // 札操作関数
@@ -165,13 +166,13 @@ void print_board(PHASE *p) {
     printf("|");
 
     // 相手の得点表示
-    if (y == 1) printf("   ○  %3d", 100);
+    if (y == 1) printf("   ○  %3d", calc_point(p, WHITE));
 
     // 残り駒数表示
     if (y == 4) printf("   残 %3d", 52);
 
     // 自分の得点表示
-    if (y == 7) printf("   ●  %3d", 100);
+    if (y == 7) printf("   ●  %3d", calc_point(p, RED));
 
     // 次の行へ表示を移る
     printf("\n");
@@ -228,6 +229,56 @@ int get_vector(PHASE *p, int index, int *coef, int *dirc) {
   return i;
 }
 
+int calc_point(PHASE *p, int turn) {
+  int i, j;
+  int x_status = 0, y_status = 0;  // 探索状況
+  int point = 0;  // 得点の合計値
+  int connected = 1;  // 連結数
+  int target[SIZE][SIZE] = {0};  // 探索対象のみを抽出し格納する配列
+
+  // 手番の領土を抽出する
+  //    1:探索対象の領土 0:探索対象外もしくは探索済み領土
+  for (j=0; j<SIZE; j++) {
+    for (i=0; i<SIZE; i++) {
+      if (p->board[j][i] == turn) target[j][i] = 1;
+    }
+  }
+
+  // 盤面を全探索する
+  for (j=0; j<SIZE; j++) {
+    for (i=0; i<SIZE; i++) {
+      // 手番の領土を見つけたら連結を確認する
+      if (target[j][i] == 1) {
+        // 右を探索する
+        if (target[j][i+1] == 1) {
+          x_status = 1;
+          connected++;
+        } else {
+          x_status = 0;
+        }
+
+        // 下を探索する
+        if (target[j+1][i] == 1) {
+          y_status = 1;
+          connected++;
+        } else {
+          y_status = 0;
+        }
+        target[j][i] = 0;
+
+        if (x_status == 0 && y_status == 0) {
+          point += connected * connected;
+
+          // 連結数初期化
+          connected = 0;
+        }
+      }
+    }
+  }
+
+  return point;
+}
+
 void change_phase(PHASE *p, int move) {
   int dx[] = {-1, 0, 1, -1, 1, -1, 0, 1};
   int dy[] = {-1, -1, -1, 0, 0, 1, 1, 1};
@@ -244,10 +295,10 @@ void change_phase(PHASE *p, int move) {
     // 移動先が敵領土であれば、騎士カードをデクリメント
     if (p->board[p->y][p->x] == WHITE) p->r_knight--;
     if (p->board[p->y][p->x] == RED) p->w_knight--;
-  }
 
-  // 盤面の領土を反映させる
-  p->board[p->y][p->x] = p->turn;
+    // 盤面の領土を反映させる
+    p->board[p->y][p->x] = p->turn;
+  }
 
   // ターンを交代する
   p->turn = (p->turn == RED)? WHITE: RED;
@@ -292,6 +343,8 @@ void input_move(PHASE *p) {
   while (1) {
     scanf("%d", &n);
 
+    // TODO: パスチェックが必要だな
+
     // コマンドが想定範囲内の値をとっているかどうか
     if (n < 0 || n > 5) {
       printf("1~5 もしくは 0 だけが入力可能なコマンドです >> ");
@@ -305,6 +358,7 @@ void input_move(PHASE *p) {
     }
 
     // 移動コマンドであれば、移動可能かどうかシミュレート
+    // TODO: 移動コマンドの下限・上限をget_player_hand_size()で取得すべき
     if (n >= 1 && n <= 5) {
       move = get_vector(p, n, &coef, &dirc);
 
