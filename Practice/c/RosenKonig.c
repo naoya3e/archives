@@ -13,10 +13,11 @@
 
 #define DRAW  3  // 引き分け
 
-#define USED  0  // 場
-#define WHITE 1  // CPU
-#define RED   2  // プレイヤー
-#define DECK  3  // 山札
+#define KEEP  -1  // 移動させない
+#define USED   0  // 場
+#define WHITE  1  // CPU
+#define RED    2  // プレイヤー
+#define DECK   3  // 山札
 
 typedef struct {
   int turn;  // 手番
@@ -45,7 +46,7 @@ void deal_card(PHASE *p);  // 山札からランダムにカードを配布す�
 void input_move(PHASE *p);  // プレイヤーのコマンド受付
 
 // プレイヤー情報取得関数
-int get_player_hands_size(PHASE *p);  // プレイヤーの手札の枚数をカウントする
+int get_player_hand_size(PHASE *p);  // プレイヤーの手札の枚数をカウントする
 
 
 int main() {
@@ -64,7 +65,7 @@ int main() {
     input_move(&p);
     print_board(&p);
 
-    break;  // DEBUG
+    // break;  // DEBUG
   }
 
   return 0;
@@ -231,12 +232,15 @@ void change_phase(PHASE *p, int move) {
   int dx[] = {-1, 0, 1, -1, 1, -1, 0, 1};
   int dy[] = {-1, -1, -1, 0, 0, 1, 1, 1};
 
-  // 現在の駒の位置から移動
-  p->x += (move/8+1)*dx[move%8];
-  p->y += (move/8+1)*dy[move%8];
+  // カードを手札に加えたときは、駒の移動を行わない
+  if (move != KEEP) {
+    // 現在の駒の位置から移動
+    p->x += (move/8+1)*dx[move%8];
+    p->y += (move/8+1)*dy[move%8];
 
-  // 使用したカードを手札から外す
-  p->card[move] = USED;
+    // 使用したカードを手札から外す
+    p->card[move] = USED;
+  }
 
   // 盤面の領土を反映させる
   p->board[p->y][p->x] = p->turn;
@@ -247,9 +251,18 @@ void change_phase(PHASE *p, int move) {
 
 void deal_card(PHASE *p) {
   int i, n;
+  int counter = 0;
 
   // 山札の存在確認
   for (i=0; i<CARDS; i++) {
+    if (p->card[i] == DECK) counter++;
+  }
+
+  // 山札が0枚であったなら、使用済カードを山札に戻す
+  if (counter == 0) {
+    for (i=0; i<CARDS; i++) {
+      if (p->card[i] == USED) p->card[i] = DECK;
+    }
   }
 
   // 山札からカードを一枚引き、手番の手札とする
@@ -282,7 +295,7 @@ void input_move(PHASE *p) {
     }
 
     // 手札が5枚のときはカードを新たに引くことはできない
-    if (n == 0 && get_player_hands_size(p) == 5) {
+    if (n == 0 && get_player_hand_size(p) == 5) {
       printf("手札が5枚あるため新たに引くことはできません >> ");
       continue;
     }
@@ -297,20 +310,23 @@ void input_move(PHASE *p) {
 
       // x方向を探索
       if (nx < 0 || nx >= SIZE) {
-        printf("盤面外への移動は行えません\n");
+        printf("盤面外への移動は行えません >> ");
         continue;
       }
       // y方向を探索
       if (ny < 0 || ny >= SIZE) {
-        printf("盤面外への移動は行えません\n");
+        printf("盤面外への移動は行えません >> ");
         continue;
       }
     }
 
     // 札のドローコマンドであり、手札の枚数が4枚以下であるか
-    if (n == 0 && get_player_hands_size(p) < 5) {
+    if (n == 0 && get_player_hand_size(p) < 5) {
       // カードを1枚手札に加える
-      deal_card(PHASE *p);
+      deal_card(p);
+
+      // 移動を防ぐために -1 フラグを立てる
+      move = KEEP;
     }
 
     // コマンドが実行可能である
@@ -321,11 +337,12 @@ void input_move(PHASE *p) {
   change_phase(p, move);
 }
 
-int get_player_hands_size(PHASE *p) {
+int get_player_hand_size(PHASE *p) {
   int i;
   int n = 0;
 
   for (i=0; i<CARDS; i++) {
+    // 自分の手札であったらカウンタを増やす
     if (p->card[i] == p->turn) n++;
   }
 
