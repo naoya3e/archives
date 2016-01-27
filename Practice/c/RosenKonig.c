@@ -70,7 +70,7 @@ void initialize(PHASE *p) {
   printf("##################################\n\n");
 
   // 手番の案内
-  printf(" あなたは先手● (ランカスター家)です。\n");
+  printf(" あなたは先手● です。\n");
 
   // 盤面の案内
   printf(" [x]:コマンド 残:残り駒数 *:駒 ● :現在の得点 ▼ :騎士の枚数 \n");
@@ -98,7 +98,6 @@ void initialize(PHASE *p) {
     n = rand()%CARDS;
     if (p->card[n] == DECK) {
       p->card[n] = RED;
-      // p->player_hand[i] = n;
       i++;
     }
   }
@@ -108,7 +107,6 @@ void initialize(PHASE *p) {
     n = rand()%CARDS;
     if (p->card[n] == DECK) {
       p->card[n] = WHITE;
-      // p->cpu_hand[i] = n;
       i++;
     }
   }
@@ -236,7 +234,7 @@ void get_player_command(PHASE *p) {
   int dx[] = {-1, 0, 1, -1, 1, -1, 0, 1};
   int dy[] = {-1, -1, -1, 0, 0, 1, 1, 1};
 
-  printf("1~5:駒を移動する 0:カードを引く >> ");
+  printf(" 1~5:駒を移動する 0:カードを引く >> ");
 
   while (1) {
     scanf("%d", &n);
