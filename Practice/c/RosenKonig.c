@@ -240,6 +240,10 @@ void change_phase(PHASE *p, int move) {
 
     // 使用したカードを手札から外す
     p->card[move] = USED;
+
+    // 移動先が敵領土であれば、騎士カードをデクリメント
+    if (p->board[p->y][p->x] == WHITE) p->r_knight--;
+    if (p->board[p->y][p->x] == RED) p->w_knight--;
   }
 
   // 盤面の領土を反映させる
@@ -317,6 +321,28 @@ void input_move(PHASE *p) {
       if (ny < 0 || ny >= SIZE) {
         printf("盤面外への移動は行えません >> ");
         continue;
+      }
+
+      // 移動先が自分の領土であるかどうか
+      if (p->turn == RED && p->board[ny][nx] == RED) {
+        printf("自分の領土への移動は行えません >> ");
+        continue;
+      }
+      if (p->turn == RED && p->board[ny][nx] == RED) {
+        printf("自分の領土への移動は行えません >> ");
+        continue;
+      }
+
+      // 騎士カードを必要とするかどうか
+      if (p->board[ny][nx] == WHITE) {
+        if (p->turn == RED && p->r_knight <= 0) {
+          printf("騎士カードがないため占領できません >> ");
+          continue;
+        }
+        if (p->turn == WHITE && p->w_knight <= 0) {
+          printf("騎士カードがないため占領できません >> ");
+          continue;
+        }
       }
     }
 
