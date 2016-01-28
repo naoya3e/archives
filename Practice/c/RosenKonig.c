@@ -205,7 +205,7 @@ void print_card(PHASE *p, int player) {
 
   // コマンド番号表示
   if (player == RED) {
-    for (i=0; i<HANDS; i++) {
+    for (i=0; i<get_player_hand_size(p); i++) {
       printf("  [%d]", i+1);
     }
     printf("\n");
@@ -387,6 +387,7 @@ void input_move(PHASE *p) {
   int move;  // 一次元で表される移動データ
   int coef, dirc;  // 移動ベクトルの係数(大きさ)と向き
   int nx, ny;  // 移動先の座標
+  int max_command;  // 入力可能な最大コマンド値
   int dx[] = {-1, 0, 1, -1, 1, -1, 0, 1};
   int dy[] = {-1, -1, -1, 0, 0, 1, 1, 1};
 
@@ -399,18 +400,32 @@ void input_move(PHASE *p) {
 
     // コマンドが想定範囲内の値をとっているかどうか
     if (n < 0 || n > 5) {
-      printf("1~5 もしくは 0 だけが入力可能なコマンドです >> ");
+      printf(" ERROR: 1~5 もしくは 0 だけが入力可能なコマンドです >> ");
       continue;
     }
 
     // 手札が5枚のときはカードを新たに引くことはできない
     if (n == 0 && get_player_hand_size(p) == 5) {
-      printf("手札が5枚あるため新たに引くことはできません >> ");
+      printf(" ERROR: 手札が5枚あるため新たに引くことはできません >> ");
+      continue;
+    }
+
+    // コマンドの最大値を取得する
+    max_command = get_player_hand_size(p);
+
+    // 移動コマンドだが手札が0枚である
+    if (n >= 1 && n <= 5 && max_command == 0) {
+      printf(" ERROR: 手札をドローしてください >> ");
+      continue;
+    }
+
+    // 入力されたコマンドが手札に存在しないもとであった場合
+    if (n > max_command) {
+      printf(" ERROR: 入力されたコマンドが示す手札は存在しません >> ");
       continue;
     }
 
     // 移動コマンドであれば、移動可能かどうかシミュレート
-    // TODO: 移動コマンドの下限・上限をget_player_hand_size()で取得すべき
     if (n >= 1 && n <= 5) {
       move = get_vector(p, n, &coef, &dirc);
 
@@ -420,33 +435,33 @@ void input_move(PHASE *p) {
 
       // x方向を探索
       if (nx < 0 || nx >= SIZE) {
-        printf("盤面外への移動は行えません >> ");
+        printf(" ERROR: 盤面外への移動は行えません >> ");
         continue;
       }
       // y方向を探索
       if (ny < 0 || ny >= SIZE) {
-        printf("盤面外への移動は行えません >> ");
+        printf(" ERROR: 盤面外への移動は行えません >> ");
         continue;
       }
 
       // 移動先が自分の領土であるかどうか
       if (p->turn == RED && p->board[ny][nx] == RED) {
-        printf("自分の領土への移動は行えません >> ");
+        printf(" ERROR: 自分の領土への移動は行えません >> ");
         continue;
       }
       if (p->turn == RED && p->board[ny][nx] == RED) {
-        printf("自分の領土への移動は行えません >> ");
+        printf(" ERROR: 自分の領土への移動は行えません >> ");
         continue;
       }
 
       // 騎士カードを必要とするかどうか
       if (p->board[ny][nx] == WHITE) {
         if (p->turn == RED && p->r_knight <= 0) {
-          printf("騎士カードがないため占領できません >> ");
+          printf(" ERROR: 騎士カードがないため占領できません >> ");
           continue;
         }
         if (p->turn == WHITE && p->w_knight <= 0) {
-          printf("騎士カードがないため占領できません >> ");
+          printf(" ERROR: 騎士カードがないため占領できません >> ");
           continue;
         }
       }
