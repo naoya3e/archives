@@ -11,6 +11,9 @@
 
 #define EMPTY 0  // 盤面が空白
 
+#define SEARCH 1  // 探索対象かつ連結対象
+#define NOCALC 2  // 探索対象ではあるが連結対象ではない
+
 #define DRAW  3  // 引き分け
 
 #define KEEP  -1  // 移動させない
@@ -240,37 +243,44 @@ int calc_point(PHASE *p, int turn) {
   //    1:探索対象の領土 0:探索対象外もしくは探索済み領土
   for (j=0; j<SIZE; j++) {
     for (i=0; i<SIZE; i++) {
-      if (p->board[j][i] == turn) target[j][i] = 1;
+      if (p->board[j][i] == turn) target[j][i] = SEARCH;
     }
   }
 
   // 盤面を全探索する
+  // TODO: 領域外を探索する可能性があるぞ
   for (j=0; j<SIZE; j++) {
     for (i=0; i<SIZE; i++) {
       // 手番の領土を見つけたら連結を確認する
-      if (target[j][i] == 1) {
+      if (target[j][i] == SEARCH || target[j][i] == NOCALC) {
         // 右を探索する
-        if (target[j][i+1] == 1) {
+        if (target[j][i+1] == SEARCH) {
           x_status = 1;
           connected++;
+        } else if (target[j][i+1] == NOCALC) {
+          x_status = 1;
         } else {
           x_status = 0;
         }
 
         // 下を探索する
-        if (target[j+1][i] == 1) {
+        if (target[j+1][i] == SEARCH) {
           y_status = 1;
           connected++;
+        } else if (target[j+1][i] == NOCALC) {
+          y_status = 1;
         } else {
           y_status = 0;
         }
-        target[j][i] = 0;
+
+        // 探索した領土を探索済みにする
+        target[j][i] = EMPTY;
 
         if (x_status == 0 && y_status == 0) {
           point += connected * connected;
 
           // 連結数初期化
-          connected = 0;
+          connected = 1;
         }
       }
     }
