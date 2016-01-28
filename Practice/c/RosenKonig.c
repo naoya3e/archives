@@ -33,13 +33,19 @@ typedef struct {
 
 // 基本動作関数
 void initialize(PHASE *p);
+// void finalize(PHASE *p);
 
 // 出力用関数
 void print_board(PHASE *p);  // 盤面および手札の表示
 void print_card(PHASE *p, int player);  // 手札の表示
 
+// 勝敗判定関数
+int check_end(PHASE *p);  // ゲームが終了したかどうかを判定
+int judge(PHASE *p);  // 盤面から勝敗判定を行う
+
 // 盤面操作関数
 int get_vector(PHASE *p, int index, int *scalar, int *dx);  // 入力されたインデックスから移動の大きさと向きを取得
+int get_territory_length(PHASE *p);  // 盤面から領土とされた数をカウントする
 int calc_point(PHASE *p, int turn);  // 盤面から得点を計算する
 void change_phase(PHASE *p, int move);  // 局面を着手にしたがって更新する
 
@@ -51,6 +57,9 @@ void input_move(PHASE *p);  // プレイヤーのコマンド受付
 
 // プレイヤー情報取得関数
 int get_player_hand_size(PHASE *p);  // プレイヤーの手札の枚数をカウントする
+
+// CPU動作処理関数
+int select_move(PHASE *p);  // CPUは最大得点となる着手を選択する
 
 
 int main() {
@@ -69,7 +78,8 @@ int main() {
     input_move(&p);
     print_board(&p);
 
-    // break;  // DEBUG
+    // 終了条件を満たしていればメインルーチンを脱する
+    if (check_end(&p)) break;
   }
 
   return 0;
@@ -172,7 +182,7 @@ void print_board(PHASE *p) {
     if (y == 1) printf("   ○  %3d", calc_point(p, WHITE));
 
     // 残り駒数表示
-    if (y == 4) printf("   残 %3d", 52);
+    if (y == 4) printf("   残 %3d", TERR-get_territory_length(p));
 
     // 自分の得点表示
     if (y == 7) printf("   ●  %3d", calc_point(p, RED));
@@ -214,6 +224,16 @@ void print_card(PHASE *p, int player) {
   }
 }
 
+int check_end(PHASE *p) {
+  int terr;
+
+  // 占領した領土数が52になったらゲーム終了
+  terr = get_territory_length(p);
+  return (terr == TERR)? 1: 0;
+
+  // TODO: どちらの手番でも着手不可能であればゲーム終了条件を満たす
+}
+
 int get_vector(PHASE *p, int index, int *coef, int *dirc) {
   int i;
   int n = 0;
@@ -232,9 +252,23 @@ int get_vector(PHASE *p, int index, int *coef, int *dirc) {
   return i;
 }
 
+int get_territory_length(PHASE *p) {
+  int i, j;
+  int n = 0;
+
+  for (j=0; j<SIZE; j++) {
+    for (i=0; i<SIZE; i++) {
+      // 盤面が白または赤の領土であればカウントアップ
+      if (p->board[j][i] == WHITE || p->board[j][i] == RED) n++;
+    }
+  }
+
+  return n;
+}
+
 int calc_point(PHASE *p, int turn) {
   int i, j;
-  int x_status = 0, y_status = 0;  // 探索状況
+  int x_status = 1, y_status = 1;  // 探索状況
   int point = 0;  // 得点の合計値
   int connected = 1;  // 連結数
   int target[SIZE][SIZE] = {0};  // 探索対象のみを抽出し格納する配列
@@ -248,26 +282,29 @@ int calc_point(PHASE *p, int turn) {
   }
 
   // 盤面を全探索する
-  // TODO: 領域外を探索する可能性があるぞ
   for (j=0; j<SIZE; j++) {
     for (i=0; i<SIZE; i++) {
       // 手番の領土を見つけたら連結を確認する
       if (target[j][i] == SEARCH || target[j][i] == NOCALC) {
+        // 領域外参照を対策する
+        if (i+1 >= SIZE) x_status = 0;
+        if (j+1 >= SIZE) y_status = 0;
+
         // 右を探索する
-        if (target[j][i+1] == SEARCH) {
+        if (x_status && target[j][i+1] == SEARCH) {
           x_status = 1;
           connected++;
-        } else if (target[j][i+1] == NOCALC) {
+        } else if (x_status && target[j][i+1] == NOCALC) {
           x_status = 1;
         } else {
           x_status = 0;
         }
 
         // 下を探索する
-        if (target[j+1][i] == SEARCH) {
+        if (y_status && target[j+1][i] == SEARCH) {
           y_status = 1;
           connected++;
-        } else if (target[j+1][i] == NOCALC) {
+        } else if (y_status && target[j+1][i] == NOCALC) {
           y_status = 1;
         } else {
           y_status = 0;
@@ -277,7 +314,12 @@ int calc_point(PHASE *p, int turn) {
         target[j][i] = EMPTY;
 
         if (x_status == 0 && y_status == 0) {
+          // 得点は連結数の2乗
           point += connected * connected;
+
+          // 探索状況初期化
+          x_status = 1;
+          y_status = 1;
 
           // 連結数初期化
           connected = 1;
