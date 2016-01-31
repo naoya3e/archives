@@ -11,8 +11,8 @@
 
 #define EMPTY 0  // 盤面が空白
 
-#define SEARCH 1  // 探索対象かつ連結対象
-#define NOCALC 2  // 探索対象ではあるが連結対象ではない
+#define DO   -1  // 探索対象かつ連結対象
+#define DONE -2  // 探索対象ではあるが連結対象ではない
 
 #define DRAW  3  // 引き分け
 
@@ -45,9 +45,14 @@ int judge(PHASE *p);  // 盤面から勝敗判定を行う
 
 // 盤面操作関数
 int get_vector(PHASE *p, int index, int *scalar, int *dx);  // 入力されたインデックスから移動の大きさと向きを取得
-int get_territory_length(PHASE *p);  // 盤面から領土とされた数をカウントする
-int calc_point(PHASE *p, int turn);  // 盤面から得点を計算する
-void change_phase(PHASE *p, int move);  // 局面を着手にしたがって更新する
+int get_territory_length(PHASE *p);  // 盤面から領土とされた数をカウント
+void change_phase(PHASE *p, int move);  // 局面を着手にしたがって更新
+
+// 得点計算用関数
+int calc_point(PHASE *p, int turn);  // 盤面から得点を計算
+int get_sum_of_target(int target[][SIZE]);  // 2次元配列から総和を計算する
+int get_n_max_from_target(int target[][SIZE]);  // 対象配列からn番目の最大連結数を得る
+void create_search_target(PHASE *p, int target[][SIZE], int turn);  // 得点探索用二次元配列を作成
 
 // 札操作関数
 void deal_card(PHASE *p);  // 山札からランダムにカードを配布する
@@ -266,71 +271,6 @@ int get_territory_length(PHASE *p) {
   return n;
 }
 
-int calc_point(PHASE *p, int turn) {
-  int i, j;
-  int x_status = 1, y_status = 1;  // 探索状況
-  int point = 0;  // 得点の合計値
-  int connected = 1;  // 連結数
-  int target[SIZE][SIZE] = {0};  // 探索対象のみを抽出し格納する配列
-
-  // 手番の領土を抽出する
-  //    1:探索対象の領土 0:探索対象外もしくは探索済み領土
-  for (j=0; j<SIZE; j++) {
-    for (i=0; i<SIZE; i++) {
-      if (p->board[j][i] == turn) target[j][i] = SEARCH;
-    }
-  }
-
-  // 盤面を全探索する
-  for (j=0; j<SIZE; j++) {
-    for (i=0; i<SIZE; i++) {
-      // 手番の領土を見つけたら連結を確認する
-      if (target[j][i] == SEARCH || target[j][i] == NOCALC) {
-        // 領域外参照を対策する
-        if (i+1 >= SIZE) x_status = 0;
-        if (j+1 >= SIZE) y_status = 0;
-
-        // 右を探索する
-        if (x_status && target[j][i+1] == SEARCH) {
-          x_status = 1;
-          connected++;
-        } else if (x_status && target[j][i+1] == NOCALC) {
-          x_status = 1;
-        } else {
-          x_status = 0;
-        }
-
-        // 下を探索する
-        if (y_status && target[j+1][i] == SEARCH) {
-          y_status = 1;
-          connected++;
-        } else if (y_status && target[j+1][i] == NOCALC) {
-          y_status = 1;
-        } else {
-          y_status = 0;
-        }
-
-        // 探索した領土を探索済みにする
-        target[j][i] = EMPTY;
-
-        if (x_status == 0 && y_status == 0) {
-          // 得点は連結数の2乗
-          point += connected * connected;
-
-          // 探索状況初期化
-          x_status = 1;
-          y_status = 1;
-
-          // 連結数初期化
-          connected = 1;
-        }
-      }
-    }
-  }
-
-  return point;
-}
-
 void change_phase(PHASE *p, int move) {
   int dx[] = {-1, 0, 1, -1, 1, -1, 0, 1};
   int dy[] = {-1, -1, -1, 0, 0, 1, 1, 1};
@@ -354,6 +294,109 @@ void change_phase(PHASE *p, int move) {
 
   // ターンを交代する
   p->turn = (p->turn == RED)? WHITE: RED;
+}
+
+int calc_point(PHASE *p, int turn) {
+  int point;  // 得点の合計値
+  int target[SIZE][SIZE] = {0};  // 探索対象のみを抽出し格納する配列
+
+  // 得点計算用の2次元配列を作成
+  create_search_target(p, target, turn);
+
+  // 作成したtarget配列の総和を取ることで得点が得られる
+  point = get_sum_of_target(target);
+
+  return point;
+}
+
+int get_sum_of_target(int target[][SIZE]) {
+  int i, j;
+  int n = 0;
+
+  // target[][]にはDOとDONEはすべて上書きされ連結数が格納されているはず
+  for (j=0; j<SIZE; j++) {
+    for (i=0; i<SIZE; i++) {
+      n += target[j][i];
+    }
+  }
+
+  return n;
+}
+
+int get_n_max_from_target(int target[][SIZE], int n) {
+  int i, j;
+  int max = 0;
+
+  for (j=0; j<SIZE; j++) {
+    for (i=0; i<SIZE; i++) {
+      if (max > target[j][i]) max = target[j][i];
+    }
+  }
+
+  return max;
+}
+
+void create_search_target(PHASE *p, int target[][SIZE], int turn) {
+  int i, j;
+  int x, y;
+  int xs = 1, ys = 1;
+  int connect = 1;
+
+  // turnの領土を抽出し探索対象とする
+  for (j=0; j<SIZE; j++) {
+    for (i=0; i<SIZE; i++) {
+      if (p->board[j][i] == turn) target[j][i] = DO;
+    }
+  }
+
+  // 盤面を全探索し、探索対象と探索済みに、探索済みを連結数に更新していく
+  for (j=0; j<SIZE; j++) {
+    for (i=0; i<SIZE; i++) {
+      if (target[j][i] == DO || target[j][i] == DONE) {
+        // 全探索時に右・下について領域外参照であれば検出
+        if (i+1 >= SIZE) xs = 0;
+        if (j+1 >= SIZE) ys = 0;
+
+        // 右方向1マス探索
+        if (xs == 1 && target[j][i+1] == DO) {
+          xs = 1;
+          connect++;
+        } else if (xs == 1 && target[j][i+1] == DONE) {
+          xs = 1;
+        } else {
+          xs = 0;
+        }
+
+        // 下方向1マス探索
+        if (ys == 1 && target[j+1][i] == DO) {
+          ys = 1;
+          connect++;
+        } else if (ys == 1 && target[j+1][i] == DONE) {
+          ys = 1;
+        } else {
+          ys = 0;
+        }
+
+        // 探索した座標を探索済みにする
+        target[j][i] = DONE;
+
+        // 連結が途切れたら探索済み座標を連結数で上書きする
+        if (xs == 0 && ys == 0) {
+          // 再び全探索して、探索済みを発見したら更新
+          for (y=0; y<SIZE; y++) {
+            for (x=0; x<SIZE; x++) {
+              if (target[y][x] == DONE) target[y][x] = connect;
+            }
+          }
+
+          // 探索状況初期化
+          xs = 1;
+          ys = 1;
+          connect = 1;
+        }
+      }
+    }
+  }
 }
 
 void deal_card(PHASE *p) {
@@ -494,5 +537,25 @@ int get_player_hand_size(PHASE *p) {
   }
 
   return n;
+}
+
+int select_move(PHASE *p) {
+  int i, j, k;
+  int n = 1;
+  int target[SIZE][SIZE];
+  int dx[] = {0, 1, 0, -1};
+  int dy[] = {-1, 0, 1, 0};
+
+  // 連結数を得るために目標配列を取得する
+  create_search_target(p, target, WHITE);
+
+  // 最大連結数を求める
+  cn = get_n_max_from_target(target, n);
+
+  for (i=0; i<get_player_hand_size(WHITE); i++) {
+    // 上、右、下、左の順に見ていき隣接するマスが指定した連結数cnであればその座標に着手
+    for (k=0; k<4; k++) {
+    }
+  }
 }
 
