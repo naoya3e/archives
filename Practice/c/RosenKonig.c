@@ -543,8 +543,11 @@ int select_move(PHASE *p) {
   int i, j, k;
   int n = 1;
   int target[SIZE][SIZE];
-  int dx[] = {0, 1, 0, -1};
-  int dy[] = {-1, 0, 1, 0};
+  int gx, gy;
+  int sx[] = {0, 1, 0, -1};
+  int sy[] = {-1, 0, 1, 0};
+  int dx[] = {-1, 0, 1, -1, 1, -1, 0, 1};
+  int dy[] = {-1, -1, -1, 0, 0, 1, 1, 1};
 
   // 連結数を得るために目標配列を取得する
   create_search_target(p, target, WHITE);
@@ -552,9 +555,20 @@ int select_move(PHASE *p) {
   // 最大連結数を求める
   cn = get_n_max_from_target(target, n);
 
-  for (i=0; i<get_player_hand_size(WHITE); i++) {
-    // 上、右、下、左の順に見ていき隣接するマスが指定した連結数cnであればその座標に着手
-    for (k=0; k<4; k++) {
+  // TODO: 移動可能かどうかのチェックなくね？
+  // TODO: cnをデクリメントして1まで見る必要ある気がする
+  // TODO: もしcn1でも見つからなければ手札からランダムに選べば良い
+
+  for (i=0; i<CARDS; i++) {
+    if (p->card[i] == WHITE) {
+      // 移動先の座標を算出する
+      gx = p->x + (i/8+1)*dx[i%8];
+      gy = p->y + (i/8+1)*dy[i%8];
+
+      // 移動先の上、右、下、左の順に見ていき隣接するマスが指定した連結数cnであればその座標に着手
+      for (k=0; k<4; k++) {
+        if (target[gy+sy[k]][gx+sx[k]] == cn) return i;
+      }
     }
   }
 }
