@@ -1,10 +1,4 @@
-#include <algorithm>
-#include <iostream>
-#include <string>
-#include <vector>
-
-#define REP(i,n) for(int i=0; i<(int)(n); i++)
-
+#include <bits/stdc++.h>
 using namespace std;
 
 int main() {
@@ -13,31 +7,22 @@ int main() {
   int n;
 
   cin >> n;
-  vector<string> s;
-  vector<int> p;
-
-  REP(i, n) {
-    int y;
-    string x;
-    cin >> x >> y;
-    s.push_back(x);
-    p.push_back(y);
-  }
+  vector<string> s(n);
+  vector<int> p(n);
 
   int sum = 0;
-  for (int n : p) sum += n;
+  for (int i=0; i<n; i++) {
+    cin >> s[i] >> p[i];
+    sum += p[i];
+  }
 
-  int half = sum/2;
-
-  bool status = false;
-  REP(i,n) {
-    if (p[i] > half) {
+  for (int i=0; i<n; i++) {
+    if (sum/2 < p[i]) {
       cout << s[i] << endl;
-      status = true;
-      break;
+      return 0;
     }
   }
 
-  if (!status) cout << "atcoder" << endl;
+  cout << "atcoder" << endl;
 }
 
