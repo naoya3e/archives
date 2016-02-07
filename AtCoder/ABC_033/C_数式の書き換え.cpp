@@ -1,10 +1,4 @@
-#include <algorithm>
-#include <iostream>
-#include <string>
-#include <vector>
-
-#define REP(i,n) for(int i=0; i<(int)(n); i++)
-
+#include <bits/stdc++.h>
 using namespace std;
 
 int main() {
