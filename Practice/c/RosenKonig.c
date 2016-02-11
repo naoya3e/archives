@@ -55,6 +55,7 @@ int get_n_max_from_target(int target[][SIZE]);  // 対象配列からn番目の�
 void create_search_target(PHASE *p, int target[][SIZE], int turn);  // 得点探索用二次元配列を作成
 
 // 札操作関数
+int check_pass(PHASE *p);  // 手札が使用可能かどうかを調べる
 void deal_card(PHASE *p);  // 山札からランダムにカードを配布する
 
 // プレイヤー入力処理関数
@@ -399,6 +400,36 @@ void create_search_target(PHASE *p, int target[][SIZE], int turn) {
   }
 }
 
+int check_pass(PHASE *p) {
+  int i;
+  int gx, gy;
+  int knight;
+  int status = 1;
+
+  // 騎士カードの枚数を確認
+  knight = (p->turn == RED)? r_knight: w_knight;
+
+  // 手札カードがあれば使用可能が探索
+  for (i=0; i<CARDS; i++) {
+    if (p->card[i] == p->turn) {
+      // 移動先の座標を算出する
+      gx = p->x + (i/8+1)*dx[i%8];
+      gy = p->y + (i/8+1)*dy[i%8];
+
+      if (p->board[gy][gx] != p->turn && knight > 0) {
+        status *= 1;
+      } else {
+        status *= 0;
+      }
+    }
+  }
+
+  // 手札カードが0枚であれば問答無用で0を返す
+  if (get_player_hand_size(p) == 0) return 0;
+
+  return status;
+}
+
 void deal_card(PHASE *p) {
   int i, n;
   int counter = 0;
@@ -557,7 +588,7 @@ int select_move(PHASE *p) {
 
   // TODO: 移動可能かどうかのチェックなくね？
   // TODO: cnをデクリメントして1まで見る必要ある気がする
-  // TODO: もしcn1でも見つからなければ手札からランダムに選べば良い
+  // TODO: もしcnでも見つからなければ手札からランダムに選べば良い
 
   for (i=0; i<CARDS; i++) {
     if (p->card[i] == WHITE) {
