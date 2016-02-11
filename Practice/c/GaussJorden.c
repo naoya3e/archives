@@ -23,7 +23,7 @@ int main(void) {
 
   // 連立方程式を出力
   for (i=0; i<N; i++) {
-    printf("%fx+%fy+%fz = %f\n", a[i][0], a[i][1], a[i][2], a[i][3]);
+    printf("%.1fx+%.1fy+%.1fz = %.1f\n", a[i][0], a[i][1], a[i][2], a[i][3]);
   }
 
   // 演算実行
@@ -34,32 +34,30 @@ int main(void) {
 
 void gauss(double a[N][N+1]) {
   int i, j, k;
-  int pivot;
-  int coef;
+  double pivot;
+  double coef;
 
-  for (i=0; i<N; i++) {
-    // ピボットの指定
-    pivot = a[i][i];
+  for (k=0; k<N; k++) {
+    // ピボットの指定 ピボットは対角成分を選択する
+    pivot = a[k][k];
 
     // ピボット行の係数を1にする
-    for (j=i; j<N; j++) {
-      a[i][j] /= pivot;
+    for (j=0; j<N+1; j++) {
+      a[k][j] /= pivot;
     }
 
     // 掃き出し
-    for (k=0; k<N; k++) {
-      if (k != i) {
-        coef = a[k][i];
-        for (j=i; j<N; j++) {
-          a[k][j] = a[k][i] - coef * a[i][j];
+    for (i=0; i<N; i++) {
+      if (i != k) {
+        coef = a[i][k];
+        for (j=0; j<N+1; j++) {
+          a[i][j] -= coef * a[k][j];
         }
       }
     }
   }
 
   // 結果出力
-  for (i=0; i<N; i++) {
-    printf("x = %f\ny = %f\nz = %f\n", a[i][N]);
-  }
+  printf("x = %f\ny = %f\nz = %f\n", a[0][N], a[1][N], a[2][N]);
 }
 
