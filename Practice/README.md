@@ -14,5 +14,6 @@ Hello, world!にはじまり、エラトステネスのふるいや2分探索な
 - Haskell
 - Elixir
 - Go
+- Java (OpenJDK 8)
 - Javascript (Typescript)
 
