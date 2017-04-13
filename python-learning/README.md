@@ -7,3 +7,4 @@ CodewarsやAtcoderなどの問題をPython(できるだけPython3)で解く
 ## Reference
 
 - [Codewars](/kata/multiples-of-3-and-5)
+- [言語処理100本ノック](http://www.cl.ecei.tohoku.ac.jp/nlp100/)
