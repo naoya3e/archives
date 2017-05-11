@@ -13,3 +13,7 @@ A watcher chrome extension for Amazon Prime Video
 - [ChromeのEvent Pagesで実現する省メモリな拡張機能](https://blog.mono0x.net/blog/2012/11/08/chrome-event-pages/)
 - [Chrome機能拡張のイベントページについて](http://oxynotes.com/?p=8928)
 - [Event Pages](https://developer.chrome.com/extensions/event_pages)
+
+## Thanks
+
+- [Icons](https://www.iconfinder.com/icons/701488/flag_flags_pin_icon)
