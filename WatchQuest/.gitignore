@@ -83,3 +83,5 @@ Temporary Items
 .apdisk
 
 
+# User definitions
+*.bundle.js
