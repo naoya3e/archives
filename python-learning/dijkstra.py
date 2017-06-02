@@ -49,5 +49,5 @@ def dijkstra(adj, start, goal=None):
     return dist
 
 
-print(dijkstra(adjacent, 0, 6))
-print(dijkstra(adjacent, 0))
+print('始点0から終点6への最短経路のパスは {}'.format(dijkstra(adjacent, 0, 6)))
+print('始点0から各点への最短経路長は {}'.format(dijkstra(adjacent, 0)))
