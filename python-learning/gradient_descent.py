@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 def f(x):
     return x**4 - x**3
@@ -24,17 +25,23 @@ def gradient_descent(df, init, rate):
         weight = weight_new
         weight_history.append(weight)
 
-    return (weight, np.array(weight_history))
+    return np.array(weight_history)
 
 
-weight, weight_history = gradient_descent(df, 0.2, 0.1)
-# weight, weight_history = gradient_descent(df, -0.3, 0.1)
+weight_history = gradient_descent(df, 0.2, 0.1)
 
 xs = np.linspace(-0.4, 1.0, 1000)
 
+fig = plt.figure()
+ims = []
+
 plt.plot(xs, f(xs), label='f(x)')
 
-plt.plot(weight_history, f(weight_history), 'o')
+for weight in weight_history:
+    im = plt.plot(weight, f(weight), 'ro')
+    ims.append(im)
+
+ani = animation.ArtistAnimation(fig, ims, interval=100)
 
 plt.grid()
 plt.legend()
