@@ -34,4 +34,4 @@ for i in range(args.time):
 
     print('{:^7}|{:^7}|{:^7}'.format(i, state, x))
 
-    state = np.random.choice(np.arange(len(transition_probability)), p=transition_probability[state])
+    state = np.random.choice(states, p=transition_probability[state])
