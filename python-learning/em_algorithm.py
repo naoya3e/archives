@@ -19,7 +19,7 @@ def normal(loc, scale):
     return norm.rvs(loc=loc, scale=scale)
 
 
-def create_sample(n, theta, co, mu, si):
+def create_sample(n, theta, mu, si):
     x = []
 
     for i in range(n):
@@ -35,15 +35,13 @@ if __name__ == '__main__':
     k = len(theta)
 
     # Generative parameters
-    pi_star = np.array([0.5, 0.5])  # 混合比
-    # pi_star = np.array([0.3, 0.7])  # 混合比
     mu_star = np.array([0, 4])      # 平均
     si_star = np.array([1, 2])      # 分散
 
     n = args.n  # サンプル数
 
     # Prepare sample
-    x  = create_sample(n, theta, pi_star, mu_star, si_star)
+    x  = create_sample(n, theta, mu_star, si_star)
     xs = list(map(lambda x: [x], x))
 
     # GaussianMixtureModel estimate with EM algorithm
@@ -56,7 +54,7 @@ if __name__ == '__main__':
     covariances = gmm.covariances_.ravel()
 
     # Print parameters
-    print('weights    : {}'.format(pi_star))
+    print('weights    : {}'.format(theta))
     print('means      : {}'.format(mu_star))
     print('covariances: {}'.format(si_star))
     print('-'*38)
