@@ -23,7 +23,7 @@ fixed_var = args.var
 # アニメーションプロット準備
 fig = plt.figure()
 ims = []
-xs = np.linspace(-2, 6, 10000)
+xs = np.linspace(-2, 4, 10000)
 
 # ベイズ推定によって観測データのモデルである正規分布の平均を学習する
 m_0 = 0.0
@@ -45,7 +45,7 @@ print('TRUE var : {}   ESTIMATED var : {}'.format(args.var, v_N))
 
 ani = animation.ArtistAnimation(fig, ims, interval=800)
 
-plt.ylim(-10, 30)
+plt.ylim(-4, 30)
 plt.title('Estimate mean of Gaussian distribution')
 plt.legend()
 
