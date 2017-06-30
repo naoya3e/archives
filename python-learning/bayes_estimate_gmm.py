@@ -23,13 +23,13 @@ fixed_var = args.var
 # アニメーションプロット準備
 fig = plt.figure()
 ims = []
-xs = np.linspace(-2, 4, 10000)
+xs = np.linspace(-4, 4, 10000)
 
-# ベイズ推定によって観測データのモデルである正規分布の平均を学習する
-m_0 = 0.0
-v_0 = fixed_var
+# ベイズ推定によって観測データのモデルである正規分布の平均を学習する (なんでも良い?)
+m_0 = -2.0
+v_0 = 1.0
 
-for i, n in enumerate([2, 4, 10, 100, 1000]):
+for i, n in enumerate([0, 2, 4, 10, 100, 1000]):
     train_sample = sample[0:n]
 
     m_ML = np.mean(train_sample)
@@ -37,15 +37,16 @@ for i, n in enumerate([2, 4, 10, 100, 1000]):
     m_N = fixed_var / denom * m_0 + n * v_0 / denom * m_ML
     v_N = v_0 * fixed_var / (fixed_var + v_0 * n)
 
-    im = plt.plot(xs, norm.pdf(xs, m_N, v_N), label=('Number of sample: {}'.format(n)))
+    im = plt.plot(xs, norm.pdf(xs, m_N, v_N), label=('Number of sample: {}'.format(n)), color='orange')
     ims.append(im)
 
 print('TRUE mean: {}   ESTIMATED mean: {}'.format(args.mean, m_N))
 print('TRUE var : {}   ESTIMATED var : {}'.format(args.var, v_N))
 
+plt.plot(xs, norm.pdf(xs, loc=m_0, scale=v_0), label='initial distribution', color='teal', alpha=0.5)
 ani = animation.ArtistAnimation(fig, ims, interval=800)
 
-plt.ylim(-4, 30)
+plt.ylim(-2, 14)
 plt.title('Estimate mean of Gaussian distribution')
 plt.legend()
 
