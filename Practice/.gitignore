@@ -1,0 +1,9 @@
+*.out
+*.dvi
+*.log
+*.o
+
+program
+
+*.class
+
