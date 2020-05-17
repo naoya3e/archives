@@ -1,6 +1,8 @@
-# Archives
+# archives
 
-アーカイブして良いような「前このコード書いたな」ってときに探すだけのリポジトリ  .
+> Projects are archived for reference.
+
+アーカイブして良いような「前このコード書いたな」ってときに探すだけのリポジトリ.  
 競技プログラミングとかPythonの練習用の残骸のコードとか.
 
 ## To archive git repository
